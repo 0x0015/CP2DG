@@ -15,8 +15,6 @@ void CP2DG::Initialize(){
 	//SDL_SetMainReady();
 	//renderSize = std::pair<int, int>(1920, 1080);
 	//renderRatio = 1;
-	resolution = std::pair<int, int>(1280, 720);
-	renderSize = std::pair<int, int>(1920, 1080);
 	//renderRatio = (float)renderSize.first/1920.0;
 	GPU_SetRequiredFeatures(GPU_FEATURE_RENDER_TARGETS);
 	GPU_SetRequiredFeatures(GPU_FEATURE_BLEND_EQUATIONS);
@@ -33,7 +31,8 @@ void CP2DG::Initialize(){
 	
 	window = GPU_InitRendererByID(rendererID, resolution.first, resolution.second, GPU_DEFAULT_INIT_FLAGS);
 	//SDL_SetWindowResizable(SDL_GetWindowFromID(window->context->windowID),SDL_TRUE);//in order to do this you would also have to check when it happens and GPU_SetWindowResolution
-
+	SDL_SetWindowTitle(SDL_GetWindowFromID(window->context->windowID), initialWindowTitle.c_str());
+	
 	//GPU_SetVirtualResolution(window, 1920, 1080);
 	
 	/*
@@ -84,7 +83,9 @@ void CP2DG::Initialize(){
 	GameObjects.push_back(Level);
 	
 	JsonLoader::levelLoadDebug = debug;
-	Level->GameObjects = JsonLoader::LoadSceneFromFile("Content/Levels/Level.json");
+	if(loadInitialLevel != ""){
+		Level->GameObjects = JsonLoader::LoadSceneFromFile(loadInitialLevel);
+	}
 
 	//MusicObject* LevelMusic = new MusicObject();
 	//LevelMusic->audioPath = "Level1.wav";
@@ -184,7 +185,7 @@ void CP2DG::Load(){
 	for(int i=0;i<paths.size();i++){
 		std::cout<<"Found behavior:  " + paths[i]<<std::endl;
 	}
-	/*
+	/*//SOON!
 	CppGen<GameObject*, int>::compilerOptions = "main.a";
 	std::vector<CppGen<GameObject*, int>*> CppGens;
 	for(int i=0;i<paths.size();i++){

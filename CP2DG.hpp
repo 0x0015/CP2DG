@@ -15,7 +15,7 @@ class ArguementHandler;
 
 class CP2DG: public RenderObject{
 public:
-	bool debug = true;
+	bool debug = false;
 	int ticks = 0;
 	int running = 1;
 	ArguementHandler* args = 0;
@@ -24,6 +24,7 @@ public:
 	//SDL_Renderer* renderer = 0;
 	//std::pair<int, int> mousePos;
 	//std::pair<bool, bool> mouseState;
+	std::string initialWindowTitle = "Hello CP2DG!";
 	std::string loadInitialLevel = "";
 	InputHandler* Input;
 	AssetLoader* Assets;
