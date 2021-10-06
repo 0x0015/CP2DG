@@ -2,7 +2,7 @@
 #include "../audio.h"
 #include <vector>
 
-class MusicObject : public GameObject{
+class MusicObject : public GameObject{//for use of keeping track of time sig, beat timings, etc... for aligning with music
 public:
 	std::string audioPath;
 	Audio* audio;
