@@ -2,6 +2,8 @@
 #include <zip.h>
 #include <ostream>
 #include <fstream>
+#include <filesystem>
+#include "../SimpleCppTextFileHandler/file.hpp"
 
 Zip::Zip(std::string filename){
 	int err = 0;
@@ -60,8 +62,16 @@ bool Zip::writeFileToDisk(std::string sourceFilename, std::string destination){
 		return(false);
 	}
 	//yay stackoverflow
+	std::filesystem::path writePath(destination);
+	std::filesystem::path parentPath = writePath.parent_path();
+	std::string sparentPath = parentPath.string();
+
+	if(!fileExists(sparentPath)){
+		createFolder(sparentPath);
+	}
+
 	std::ofstream binFile(destination, std::ios::out | std::ios::binary);//wow, the c++ way of doing things
-	binFile.write((char*)&(file.value().first), file.value().second);
+	binFile.write(file.value().first, file.value().second);
 	binFile.close();
 	return(true);
 }

@@ -20,7 +20,7 @@ bool RuntimeLoader::build(){
 	}
 	
 	if(!fileExists(sourceDir)){
-		return(false);
+		createFolder(sourceDir);
 	}
 	if(!fileExists(buildDir)){
 		createFolder(buildDir);
@@ -28,6 +28,12 @@ bool RuntimeLoader::build(){
 
 	std::vector<std::string> paths;
 	for(const auto & entry : std::filesystem::recursive_directory_iterator(sourceDir)){
+		if(entry.path().extension() == ".CP2DGP"){
+			paths.push_back(entry.path().string());
+		}
+	}
+
+	for(const auto & entry : std::filesystem::recursive_directory_iterator("Content/Plugins")){
 		if(entry.path().extension() == ".CP2DGP"){
 			paths.push_back(entry.path().string());
 		}
@@ -50,15 +56,17 @@ bool RuntimeLoader::build(){
 		for(int x=0;x<zipEntries.size();x++){
 			std::string newFilename = buildDir + "/" + zipEntries[x];
 			currentZipFile->writeFileToDisk(zipEntries[x], newFilename);
+			//std::cout<<currentZipFile->readFile(zipEntries[x]).value().first<<std::endl;
 			if(newFilename.substr(newFilename.length()-4, 4) == ".cpp"){
 				cppPaths.push_back(newFilename);
+				std::cout<<"Found cpp file:  "<<newFilename<<std::endl;
 			}
 		}
 	}
 	
 	using CppGenType = CppGen<std::pair<std::string, std::shared_ptr<JsonLoaderDef_Base>>, int>;//before thinking of using a using statement this was a nightmare
 
-	CppGenType::compilerOptions = "-l:main.so";
+	CppGenType::compilerOptions = "main.so";
 	std::vector<std::shared_ptr<CppGenType>> CppGens;
 	for(int i=0;i<cppPaths.size();i++){
 		std::shared_ptr<CppGenType> tempGen = std::make_shared<CppGenType>(cppPaths[i], true, "g++", "getGameObject");//later add simultanious threaded building

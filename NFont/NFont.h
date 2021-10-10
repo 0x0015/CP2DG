@@ -53,7 +53,7 @@ define NFONT_USE_SDL_GPU
 
 #endif 
 
-#include "stdarg.h"
+#include <stdarg.h>
 
 // Let's pretend this exists...
 #ifndef TTF_STYLE_OUTLINE

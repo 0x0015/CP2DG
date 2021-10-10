@@ -17,16 +17,16 @@ public:
 	
 #if defined(_WIN32) || defined(_WIN64)
 	std::string sharedObjectExtention = ".dll";
-	std::string defaultOptions = "-fPIC -static -static-libgcc -static-libstdc++";
+	std::string defaultOptions = "-fPIC -static -static-libgcc -static-libstdc++ -std=c++20 -Wl,-rpath='${ORIGIN}/..'";
 #else
 	std::string sharedObjectExtention = ".so";
-	std::string defaultOptions = "-fPIC";
+	std::string defaultOptions = "-fPIC -std=c++20 -Wl,-rpath='${ORIGIN}/..'";
 #endif
 
 	std::string functionName = "main";
 	std::string compilerOutput = "";
 	static inline std::string compiler = "g++";
-	static inline std::string compileDirectory = "DllTemp";
+	static inline std::string compileDirectory = "Runtime";
 	static inline std::string compilerOptions = "";
 	void* dllHandle;
 	T (*func)(T2);
@@ -49,8 +49,11 @@ public:
 			compiledFileExists = true;
 		}
 		std::string command = compiler + " -shared -g -o " + dllTempFolder + "/" + hash + sharedObjectExtention + " " + defaultOptions + " " + path + " " + compilerOptions + " 2>&1";
-
+		
+		
 		if(!compiledFileExists){
+			std::cout<<"Running Command: "<<command<<std::endl;
+
 			char buffer[128];
 			FILE* pipe = popen(command.c_str(), "r");
 			if(!pipe){
@@ -66,7 +69,7 @@ public:
 			}
 			pclose(pipe);
 		}
-		
+	
 		char *derror;
 		    dllHandle = dlopen ((dllTempFolder + "/"+ hash + sharedObjectExtention).c_str(), RTLD_LAZY);
 
