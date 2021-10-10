@@ -1,6 +1,5 @@
 #include "CP2DG.hpp"
 #include <filesystem>
-#include "CppGen.hpp"
 #include "InputHandler.hpp"
 #include "AssetLoader.hpp"
 #include "ArguementHandler/ArgHandle.hpp"
@@ -8,6 +7,7 @@
 #include "audio.h"
 #include "JsonLoader.hpp"
 #include "GameObjects/ParticlesObject.hpp"
+#include "RuntimeLoader/RuntimeLoader.hpp"
 
 void CP2DG::Initialize(){
 	if(debug)
@@ -75,7 +75,9 @@ void CP2DG::Initialize(){
 	Assets->mainWindow = this;
 	Input = new InputHandler();
 
-	
+	DlLoader = std::make_shared<RuntimeLoader>(this);
+	DlLoader->build();
+
 	std::shared_ptr<RenderObject> Level = std::make_shared<RenderObject>();
 	Level->renderSize = std::pair<float, float>(renderSize.first, renderSize.second);
 	Level->size = std::pair<float, float>(resolution.first, resolution.second);
@@ -174,7 +176,7 @@ void CP2DG::Load(){
 		GameObjects[i]->Load();
 	}
 	
-
+	/*
 	std::string path = "behaviors";
 	std::vector<std::string> paths;
 	for(const auto & entry : std::filesystem::recursive_directory_iterator(path)){
@@ -185,8 +187,9 @@ void CP2DG::Load(){
 	for(int i=0;i<paths.size();i++){
 		std::cout<<"Found behavior:  " + paths[i]<<std::endl;
 	}
+	*/
 	/*//SOON!
-	CppGen<GameObject*, int>::compilerOptions = "main.a";
+	CppGen<GameObject*, int>::compilerOptions = "main.so";
 	std::vector<CppGen<GameObject*, int>*> CppGens;
 	for(int i=0;i<paths.size();i++){
 		//std::string codeTemp = readFile(paths[i]);

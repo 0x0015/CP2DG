@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <utility>
 #include "audio.h"
-#include "Main.hpp"
+#include "CP2DG.hpp"
 
 struct pair_hash //https://www.techiedelight.com/use-std-pair-key-std-unordered_map-cpp/
 {

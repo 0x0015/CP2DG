@@ -12,6 +12,7 @@
 class InputHandler;
 class AssetLoader;
 class ArguementHandler;
+class RuntimeLoader;
 
 class CP2DG: public RenderObject{
 public:
@@ -28,6 +29,7 @@ public:
 	std::string loadInitialLevel = "";
 	InputHandler* Input;
 	AssetLoader* Assets;
+	std::shared_ptr<RuntimeLoader> DlLoader;
 	GameObject* player = 0;
 	std::pair<int, int> resolution = std::pair<int, int>(0,0);
 	std::pair<int, int> renderSize = std::pair<int, int>(0,0);
