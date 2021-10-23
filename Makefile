@@ -1,44 +1,45 @@
-OBJS	= main_c.cpp.o \
-	  CP2DG.cpp.o \
-	  Main.cpp.o \
-	  GUI.cpp.o \
-	  AssetLoader.cpp.o \
-	  InputHandler.cpp.o \
-	  GameObjects/RenderObject.cpp.o \
-	  GameObjects/FunctionalGameObject.cpp.o \
-	  GameObjects/GameObject.cpp.o \
-	  GameObjects/Sprite.cpp.o \
-	  GameObjects/ShaderObject.cpp.o \
-	  GameObjects/TextObject.cpp.o \
-	  GameObjects/Shapes/Shape.cpp.o \
-	  GameObjects/Shapes/Rectangle.cpp.o \
-	  GameObjects/Shapes/Ellipse.cpp.o \
-	  GameObjects/Shapes/Polygon.cpp.o \
-	  GameObjects/Shapes/Arc.cpp.o \
-	  GameObjects/MusicObject.cpp.o \
-	  GameObjects/Attributes/Collidable.cpp.o \
-	  GameObjects/ParticlesObject.cpp.o \
-	  audio.c.o \
-	  JsonLoader/JsonLoader.cpp.o \
-	  JsonLoader/JsonLoaderDefaults.cpp.o \
-	  JsonLoader/JsonLoaderDefs/JsonDefaultDefs.cpp.o \
-	  JsonLoader/JsonLoaderDefs/JsonLdouble.cpp.o \
-	  JsonLoader/JsonLoaderDefs/JsonLfloat.cpp.o \
-	  JsonLoader/JsonLoaderDefs/JsonLint.cpp.o \
-	  JsonLoader/JsonLoaderDefs/JsonLoadDef.cpp.o \
-	  JsonLoader/JsonLoaderDefs/JsonLstd__pair_float_float_.cpp.o \
-	  JsonLoader/JsonLoaderDefs/JsonLstd__pair_int_int_.cpp.o \
-	  JsonLoader/JsonLoaderDefs/JsonLstd__string.cpp.o \
-	  RuntimeLoader/RuntimeLoader.cpp.o \
-	  RuntimeLoader/zip.cpp.o \
-	  ArguementHandler/ArgHandle.cpp.o \
-	  ArguementHandler/Arguement.cpp.o\
-	  SimpleCppTextFileHandler/file.cpp.o\
-	  SimpleCppTextFileHandler/fileManipulation.cpp.o \
-	  SimpleCppTextFileHandler/getExecutablePath.cpp.o \
-	  NFont/SDL_FontCache.c.o \
-	  NFont/NFont.cpp.o \
-	  flextGL.c.o \
+OBJS	= src/main_c.cpp.o \
+	  src/CP2DG.cpp.o \
+	  src/Main.cpp.o \
+	  src/GUI.cpp.o \
+	  src/AssetLoader.cpp.o \
+	  src/InputHandler.cpp.o \
+	  src/GameObjects/RenderObject.cpp.o \
+	  src/GameObjects/FunctionalGameObject.cpp.o \
+	  src/GameObjects/GameObject.cpp.o \
+	  src/GameObjects/Sprite.cpp.o \
+	  src/GameObjects/ShaderObject.cpp.o \
+	  src/GameObjects/TextObject.cpp.o \
+	  src/GameObjects/Shapes/Shape.cpp.o \
+	  src/GameObjects/Shapes/Rectangle.cpp.o \
+	  src/GameObjects/Shapes/Ellipse.cpp.o \
+	  src/GameObjects/Shapes/Polygon.cpp.o \
+	  src/GameObjects/Shapes/Arc.cpp.o \
+	  src/GameObjects/MusicObject.cpp.o \
+	  src/GameObjects/Attributes/Collidable.cpp.o \
+	  src/GameObjects/ParticlesObject.cpp.o \
+	  src/audio.c.o \
+	  src/ComputeShader.cpp.o \
+	  src/JsonLoader/JsonLoader.cpp.o \
+	  src/JsonLoader/JsonLoaderDefaults.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonDefaultDefs.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonLdouble.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonLfloat.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonLint.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonLoadDef.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonLstd__pair_float_float_.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonLstd__pair_int_int_.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonLstd__string.cpp.o \
+	  src/RuntimeLoader/RuntimeLoader.cpp.o \
+	  src/RuntimeLoader/zip.cpp.o \
+	  src/ArguementHandler/ArgHandle.cpp.o \
+	  src/ArguementHandler/Arguement.cpp.o\
+	  src/SimpleCppTextFileHandler/file.cpp.o\
+	  src/SimpleCppTextFileHandler/fileManipulation.cpp.o \
+	  src/SimpleCppTextFileHandler/getExecutablePath.cpp.o \
+	  src/NFont/SDL_FontCache.c.o \
+	  src/NFont/NFont.cpp.o \
+	  src/flextGL.c.o \
 
 OUT	= bin/main
 WIN_OUT = bin/main.exe
@@ -48,8 +49,8 @@ CXX	= g++
 WIN_CXX = x86_64-w64-mingw32-g++
 CC      = gcc
 WIN_CC  = x86_64-w64-mingw32-gcc
-BUILD_CXX_FLAGS	 = -std=c++20 -fPIC
-WIN_BUILD_CXX_FLAGS = -std=c++20 -fPIC -ILibraries/Win/include
+BUILD_CXX_FLAGS	 = -std=c++20 -fPIC -Iinclude
+WIN_BUILD_CXX_FLAGS = -std=c++20 -fPIC -ILibraries/Win/include -Iinclude
 BULID_CC_FLAGS   = -fPIC
 WIN_BUILD_CC_FLAGS = -fPIC
 LINK_OPTS	 = -lpthread -ldl -lSDL2 -lSDL2_gpu -lSDL2_ttf -lGL -ltbb -lzip
@@ -68,6 +69,7 @@ else
 	$(WIN_CXX) -shared -g -o $(WIN_SHARED) $(OBJS) $(WIN_BUILD_CXX_FLAGS) $(WIN_LINK_OPTS)
 endif
 	cp -R Content bin/Content
+	cp -R include bin/include
 
 
 %.cpp.o: %.cpp
