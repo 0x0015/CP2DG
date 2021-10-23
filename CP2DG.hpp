@@ -3,7 +3,6 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_gpu.h>
-//#include "gl_core_3_0.h"
 #include <vector>
 #include "GameObjects/RenderObject.hpp"
 
