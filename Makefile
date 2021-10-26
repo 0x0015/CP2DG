@@ -68,8 +68,8 @@ else
 	#$(AR) rvs $(LIB) $(OBJS)
 	$(WIN_CXX) -shared -g -o $(WIN_SHARED) $(OBJS) $(WIN_BUILD_CXX_FLAGS) $(WIN_LINK_OPTS)
 endif
-	cp -R Content bin/Content
-	cp -R include bin/include
+	cp -a Content/. bin/Content/
+	cp -a include/. bin/include/
 
 
 %.cpp.o: %.cpp
