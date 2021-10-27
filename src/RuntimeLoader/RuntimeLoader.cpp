@@ -67,6 +67,8 @@ bool RuntimeLoader::build(){
 	using CppGenType = CppGen<std::pair<std::string, std::shared_ptr<JsonLoaderDef_Base>>, int>;//before thinking of using a using statement this was a nightmare
 
 	CppGenType::compilerOptions = "main.so";
+	CppGenType::compilerOptions.append(" -I" + buildDir);
+
 	std::vector<std::shared_ptr<CppGenType>> CppGens;
 	for(int i=0;i<cppPaths.size();i++){
 		std::shared_ptr<CppGenType> tempGen = std::make_shared<CppGenType>(cppPaths[i], true, "g++", "getGameObject");//later add simultanious threaded building
