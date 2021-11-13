@@ -1,6 +1,8 @@
 #include "RuntimeLoader/RuntimeLoader.hpp"
 #include "CP2DG.hpp"
-#include "CppGen.hpp"
+#include <dlfcn.h>
+#include <thread>
+#include "../SimpleCppTextFileHandler/file.hpp"
 #include "zip.hpp"
 #include "JsonLoader/JsonLoader.hpp"
 
@@ -13,6 +15,8 @@ void RuntimeLoader::deleteCache(){
 		deleteFile(buildDir);
 	}
 }
+
+typedef std::pair<std::string, std::shared_ptr<JsonLoaderDef_Base>>(*CppFuncType)();
 
 bool RuntimeLoader::build(){
 	if(mainWindow == NULL || buildDir == "" || sourceDir == ""){
@@ -46,6 +50,7 @@ bool RuntimeLoader::build(){
 	}
 	
 	std::vector<std::string> cppPaths;
+	std::vector<std::string> funcNamesPaths;
 
 	for(int i=0;i<paths.size();i++){
 		std::shared_ptr<Zip> currentZipFile = std::make_shared<Zip>(paths[i]);
@@ -55,37 +60,162 @@ bool RuntimeLoader::build(){
 		std::vector<std::string> zipEntries = currentZipFile->listFiles();
 		for(int x=0;x<zipEntries.size();x++){
 			std::string newFilename = buildDir + "/" + zipEntries[x];
-			currentZipFile->writeFileToDisk(zipEntries[x], newFilename);
+			if(!fileExists(newFilename)){
+				currentZipFile->writeFileToDisk(zipEntries[x], newFilename);
+			}
 			//std::cout<<currentZipFile->readFile(zipEntries[x]).value().first<<std::endl;
 			if(newFilename.substr(newFilename.length()-4, 4) == ".cpp"){
 				cppPaths.push_back(newFilename);
 				std::cout<<"Found cpp file:  "<<newFilename<<std::endl;
 			}
+			if(newFilename.substr(newFilename.length() - 6, 6) == "Loader"){
+				funcNamesPaths.push_back(newFilename);
+				std::cout<<"Found Loader file:  "<<newFilename<<std::endl;
+			}
+		}
+	}
+
+	std::vector<std::string> funcNames;
+	for(int i=0;i<funcNamesPaths.size();i++){
+		std::string funcName = readFile(funcNamesPaths[i]);
+		funcName.erase(remove(funcName.begin(), funcName.end(), ' '), funcName.end());
+		funcName.erase(remove(funcName.begin(), funcName.end(), '\n'), funcName.end());
+		funcName.erase(remove(funcName.begin(), funcName.end(), '\t'), funcName.end());
+		//remove whitespace that could be mistakenly in there
+		if(funcName != ""){
+			std::cout<<"found func to load:  "<<funcName<<std::endl;
+			funcNames.push_back(funcName);
 		}
 	}
 	
-	using CppGenType = CppGen<std::pair<std::string, std::shared_ptr<JsonLoaderDef_Base>>, int>;//before thinking of using a using statement this was a nightmare
+	//using CppGenType = std::pair<std::string, std::shared_ptr<JsonLoaderDef_Base>>;//before thinking of using a using statement this was a nightmare
 
-	CppGenType::compilerOptions = "main.so";
-	CppGenType::compilerOptions.append(" -I" + buildDir);
+#if defined(_WIN32) || defined(_WIN64)
+	std::string sharedObjectExtention = ".dll";
+	std::string defaultOptions = "-fPIC -static -static-libgcc -static-libstdc++ -std=c++20 -Iinclude -IRuntime";
+#else
+	std::string sharedObjectExtention = ".so";
+	std::string defaultOptions = "-fPIC -std=c++20 -Iinclude -IRuntime";
+#endif
 
-	std::vector<std::shared_ptr<CppGenType>> CppGens;
-	for(int i=0;i<cppPaths.size();i++){
-		std::shared_ptr<CppGenType> tempGen = std::make_shared<CppGenType>(cppPaths[i], true, "g++", "getGameObject");//later add simultanious threaded building
-		tempGen->generateCode();
-		if(tempGen->generated == true && tempGen->error == false){
-			auto call = tempGen->call(0);
-			if(call){
-				JsonLoader::JsonLoaderDefs[call.value().first] = call.value().second;
-				if(mainWindow->debug){
-					std::cout<<"Successfully built and added json loader for " + call.value().first<<std::endl;
-				}
+	std::string compiler = "g++";
+
+	std::string linkerOptions = "-Wl,-rpath='${ORIGIN}/..' -export-dynamic main.so";
+	std::string compilerOptions = "";
+	std::string soName = "FuncGen";
+
+	std::vector<std::string> objPaths;
+
+	createFolder(buildDir);
+
+	for(int i=0;i<cppPaths.size();i++){//make this one parralel
+		std::string code = readFile(cppPaths[i]);
+		if(code == ""){
+			errors.push_back("Unable to open file: " + cppPaths[i]);
+			continue;
+		}
+		std::size_t codeHash = std::hash<std::string>{}(code);
+		std::string hash = std::to_string(codeHash);
+		
+		if(fileExists(buildDir + "/" + hash + ".o")){
+			objPaths.push_back(buildDir + "/" + hash + ".o");
+			continue;
+		}
+		
+		std::string command = compiler + " " +  defaultOptions + " " + cppPaths[i] + " " + compilerOptions + " -c -g -o " + buildDir + "/" + hash + ".o "  + " 2>&1";
+				
+		std::cout<<"Running Command: "<<command<<std::endl;
+		char buffer[128];
+		FILE* pipe = popen(command.c_str(), "r");
+		if(!pipe){
+			//error = true;
+			//generated = false;
+			continue;
+		}
+		std::string NextcompilerOutput = "";
+		while(!feof(pipe)){
+			if(fgets(buffer, 128, pipe) != NULL){
+				NextcompilerOutput += buffer;
 			}
-			
-		}else{
-			std::cout<<"Error generating " + cppPaths[i] + ":\n";
-			std::cout<<tempGen->compilerOutput<<std::endl;
+		}
+		pclose(pipe);
+		errors.push_back(NextcompilerOutput);
+		objPaths.push_back(buildDir + "/" + hash + ".o");
+	}
+
+
+	std::string compileObjs = "";
+	
+	for(int i=0;i<objPaths.size();i++){
+		compileObjs.append(objPaths[i] + " ");
+	}
+	
+	std::string link_command = compiler + " -shared -g -o " + buildDir + "/" + soName + sharedObjectExtention + " " + compileObjs + " " + linkerOptions + " 2>&1";
+		
+	std::cout<<"Running Command: "<<link_command<<std::endl;
+	char buffer[128];
+	FILE* pipe = popen(link_command.c_str(), "r");
+	if(!pipe){
+		//error = true;
+		//generated = false;
+		//continue;
+	}
+	std::string NextcompilerOutput = "";
+	while(!feof(pipe)){
+		if(fgets(buffer, 128, pipe) != NULL){
+			NextcompilerOutput += buffer;
 		}
 	}
+	pclose(pipe);
+	errors.push_back(NextcompilerOutput);
+	
+		
+	char *derror;
+	std::cout<<"dlopen "<<buildDir + "/" + soName + sharedObjectExtention<<std::endl;
+	void* dllHandle = dlopen ((buildDir + "/" + soName + sharedObjectExtention).c_str(), RTLD_NOW);
+	if (!dllHandle) {
+		//fputs (dlerror(), stderr);
+		std::cout<<"Encountered a dlopen error"<<std::endl;
+		errors.push_back(std::string(dlerror()));
+		//error = true;
+		//generated = false;
+		for(int i=0;i<errors.size();i++){
+			std::cout<<errors[i]<<std::endl;
+		}
+		return(false);
+	}
+	// get the function address and make it ready for use
+
+
+	for(int i=0;i<funcNames.size();i++){
+		std::cout<<"dlsym "<<dllHandle<<", "<<funcNames[i]<<std::endl;
+		void* func = dlsym(dllHandle, funcNames[i].c_str());
+		if (func == NULL)  {
+			//fputs(derror, stderr);
+			//exit(1);
+			std::cout<<"encountered dlsym error"<<std::endl;
+			errors.push_back(std::string(dlerror()));
+			//error = true;
+			//generated = false;
+			continue;
+		}
+		std::cout<<"calling dlsymed function "<<funcNames[i]<<std::endl;
+		auto call = ((CppFuncType)func)();
+		JsonLoader::JsonLoaderDefs[call.first] = call.second;
+		
+	}
+
+	dlclose(dllHandle);
+	for(int i=0;i<errors.size();i++){
+		if(errors[i] == "" || errors[i] == " "){
+			errors.erase(errors.begin() + i);
+			i-=1;
+		}
+	}
+	for(int i=0;i<errors.size();i++){
+		std::cout<<errors[i]<<std::endl;
+	}
+
+	
 	return(true);
 }

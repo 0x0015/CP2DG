@@ -49,8 +49,8 @@ CXX	= g++
 WIN_CXX = x86_64-w64-mingw32-g++
 CC      = gcc
 WIN_CC  = x86_64-w64-mingw32-gcc
-BUILD_CXX_FLAGS	 = -std=c++20 -fPIC -Iinclude
-WIN_BUILD_CXX_FLAGS = -std=c++20 -fPIC -ILibraries/Win/include -Iinclude
+BUILD_CXX_FLAGS	 = -Wall -std=c++20 -fPIC -Iinclude
+WIN_BUILD_CXX_FLAGS = -Wall -std=c++20 -fPIC -ILibraries/Win/include -Iinclude
 BULID_CC_FLAGS   = -fPIC
 WIN_BUILD_CC_FLAGS = -fPIC
 LINK_OPTS	 = -lpthread -ldl -lSDL2 -lSDL2_gpu -lSDL2_ttf -lGL -ltbb -lzip
