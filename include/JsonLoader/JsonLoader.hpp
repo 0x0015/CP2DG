@@ -82,7 +82,11 @@ public:
 				void* val = output->Create_Bp[i.first];
 				std::pair<int,int>* ival = (std::pair<int,int>*)val;
 				*ival = args->get<std::pair<int,int>>(i.first);
-			}else{
+			}else if(i.second.first == "std::vector<std::shared_ptr<GameObject>>" && T::Blueprint[i.first] == "std::vector<std::shared_ptr<GameObject>>"){
+				void* val = output->Create_Bp[i.first];
+				std::vector<std::shared_ptr<GameObject>>* ival = (std::vector<std::shared_ptr<GameObject>>*)val;
+				*ival = args->get<std::vector<std::shared_ptr<GameObject>>>(i.first);
+			}else{//I need to remember to clean this up some day.
 				std::cout<<"unknown type: "<<i.first<<" "<<i.second.first<<std::endl;
 			}
 		}
