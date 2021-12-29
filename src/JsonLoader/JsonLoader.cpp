@@ -85,6 +85,9 @@ std::vector<std::shared_ptr<GameObject>> JsonLoader::LoadSceneFromFile(std::stri
 		return(std::vector<std::shared_ptr<GameObject>>());
 	}
 	std::string jsonSceneLoadText = readFile(filename);
+	if(jsonSceneLoadText == ""){
+		jsonSceneLoadText = readFile("Content/Levels/" + filename + ".json");
+	}
 	std::vector<std::shared_ptr<GameObject>> loaded = LoadSceneFromText(jsonSceneLoadText);
 	return(loaded);
 }
