@@ -30,6 +30,7 @@ OBJS	= src/main_c.cpp.o \
 	  src/JsonLoader/JsonLoaderDefs/JsonLstd__pair_float_float_.cpp.o \
 	  src/JsonLoader/JsonLoaderDefs/JsonLstd__pair_int_int_.cpp.o \
 	  src/JsonLoader/JsonLoaderDefs/JsonLstd__string.cpp.o \
+	  src/JsonLoader/JsonLoaderDefs/JsonLstd__vector_std__shared_ptr_GameObject__.cpp.o \
 	  src/RuntimeLoader/RuntimeLoader.cpp.o \
 	  src/RuntimeLoader/zip.cpp.o \
 	  src/ArguementHandler/ArgHandle.cpp.o \

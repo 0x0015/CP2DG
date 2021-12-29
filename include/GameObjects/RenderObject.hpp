@@ -92,7 +92,8 @@ public:
 		{"size", "std::pair<int,int>"},
 		{"renderSize", "std::pair<int,int>"},
 		{"rotation", "float"},
-		{"center", "std::pair<int,int>"}
+		{"center", "std::pair<int,int>"},
+		{"GameObjects", "std::vector<std::shared_ptr<GameObject>>"}
 	};
 	std::unordered_map<std::string, void*> Create_Bp = {
 		{"position", &position},
@@ -102,7 +103,8 @@ public:
 		{"size", &size},
 		{"renderSize", &renderSize},
 		{"rotation", &rotation},
-		{"center", &center}
+		{"center", &center},
+		{"GameObjects", &GameObjects}
 	};
 
 };
