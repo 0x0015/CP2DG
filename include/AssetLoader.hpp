@@ -1,7 +1,5 @@
 #pragma once
 #include <iostream>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_gpu.h>
 #include <unordered_map>
 #include <utility>
 #include "audio.h"
@@ -19,6 +17,7 @@ class NFont;
 class Shader;
 class ComputeShader;
 class CP2DG;
+class GPU_Image;
 
 class AssetLoader{
 public:

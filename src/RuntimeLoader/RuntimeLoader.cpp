@@ -18,6 +18,22 @@ void RuntimeLoader::deleteCache(){
 
 typedef std::pair<std::string, std::shared_ptr<JsonLoaderDef_Base>>(*CppFuncType)();
 
+
+
+std::vector<std::string> splitString(std::string source, std::string delimiter){
+	std::string s = source;
+	std::vector<std::string> output;
+	size_t pos = 0;
+	std::string token;
+	while ((pos = s.find(delimiter)) != std::string::npos) {
+	    token = s.substr(0, pos);
+	    output.push_back(token);
+	    s.erase(0, pos + delimiter.length());
+	}
+	output.push_back(s);
+	return(output);
+}
+
 bool RuntimeLoader::build(){
 	if(mainWindow == NULL || buildDir == "" || sourceDir == ""){
 		return(false);
@@ -51,6 +67,7 @@ bool RuntimeLoader::build(){
 	
 	std::vector<std::string> cppPaths;
 	std::vector<std::string> funcNamesPaths;
+	std::string startingLevelPath;
 
 	for(int i=0;i<paths.size();i++){
 		std::shared_ptr<Zip> currentZipFile = std::make_shared<Zip>(paths[i]);
@@ -72,21 +89,42 @@ bool RuntimeLoader::build(){
 				funcNamesPaths.push_back(newFilename);
 				std::cout<<"Found Loader file:  "<<newFilename<<std::endl;
 			}
+			if(newFilename.substr(newFilename.length() - 4, 4) == "Init"){
+				startingLevelPath = newFilename;
+				std::cout<<"Found Init file:  "<<newFilename<<std::endl;
+			}
 		}
 	}
 
 	std::vector<std::string> funcNames;
 	for(int i=0;i<funcNamesPaths.size();i++){
 		std::string funcName = readFile(funcNamesPaths[i]);
-		funcName.erase(remove(funcName.begin(), funcName.end(), ' '), funcName.end());
-		funcName.erase(remove(funcName.begin(), funcName.end(), '\n'), funcName.end());
-		funcName.erase(remove(funcName.begin(), funcName.end(), '\t'), funcName.end());
-		//remove whitespace that could be mistakenly in there
-		if(funcName != ""){
-			std::cout<<"found func to load:  "<<funcName<<std::endl;
-			funcNames.push_back(funcName);
+		std::vector<std::string> splitLoaders = splitString(funcName, "\n");
+		for(int i2=0;i2<splitLoaders.size();i2++){
+			splitLoaders[i2].erase(remove(splitLoaders[i2].begin(), splitLoaders[i2].end(), ' '), splitLoaders[i2].end());
+			splitLoaders[i2].erase(remove(splitLoaders[i2].begin(), splitLoaders[i2].end(), '\n'), splitLoaders[i2].end());
+			splitLoaders[i2].erase(remove(splitLoaders[i2].begin(), splitLoaders[i2].end(), '\t'), splitLoaders[i2].end());
+			//remove whitespace that could be mistakenly in there
+			if(splitLoaders[i2] != ""){
+				std::cout<<"found func to load:  "<<splitLoaders[i2]<<std::endl;
+				funcNames.push_back(splitLoaders[i2]);
+			}
 		}
 	}
+
+	std::string startingLevel;
+	{
+		startingLevel = readFile(startingLevelPath);
+		startingLevel.erase(remove(startingLevel.begin(), startingLevel.end(), ' '), startingLevel.end());
+		startingLevel.erase(remove(startingLevel.begin(), startingLevel.end(), '\n'), startingLevel.end());
+		startingLevel.erase(remove(startingLevel.begin(), startingLevel.end(), '\t'), startingLevel.end());
+		if(startingLevel == ""){
+			std::cout<<"Warning:  did not find starting level"<<std::endl;
+		}else{
+			mainWindow->loadInitialLevel = startingLevel;
+		}
+	}
+
 	
 	//using CppGenType = std::pair<std::string, std::shared_ptr<JsonLoaderDef_Base>>;//before thinking of using a using statement this was a nightmare
 
