@@ -33,6 +33,10 @@ std::vector<std::shared_ptr<GameObject>> JsonLoader::LoadSceneFromText(std::stri
 }
 
 std::vector<std::shared_ptr<GameObject>> JsonLoader::LoadGameObjects(json jGOs){
+	if(jGOs.contains("GameObjects")){
+		//jGOs should be the gameobjects list
+		return(LoadGameObjects(jGOs["GameObjects"]));
+	}
 	std::vector<std::shared_ptr<GameObject>> GameObjects;
 	for(int i=0;i<jGOs.size();i++){
 		json jGO = jGOs[i];

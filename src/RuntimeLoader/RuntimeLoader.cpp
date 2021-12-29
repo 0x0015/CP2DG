@@ -2,6 +2,7 @@
 #include "CP2DG.hpp"
 #include <dlfcn.h>
 #include <thread>
+#include <future>
 #include "../SimpleCppTextFileHandler/file.hpp"
 #include "zip.hpp"
 #include "JsonLoader/JsonLoader.hpp"
@@ -32,6 +33,25 @@ std::vector<std::string> splitString(std::string source, std::string delimiter){
 	}
 	output.push_back(s);
 	return(output);
+}
+
+std::optional<std::pair<std::string,std::string>> runCommand(std::string command, std::string file){
+	std::cout<<"Running Command: "<<command<<std::endl;
+	char buffer[128];
+	FILE* pipe = popen(command.c_str(), "r");
+	if(!pipe){
+		//error = true;
+		//generated = false;
+		return(std::nullopt);
+	}
+	std::string NextcompilerOutput = "";
+	while(!feof(pipe)){
+		if(fgets(buffer, 128, pipe) != NULL){
+			NextcompilerOutput += buffer;
+		}
+	}
+	pclose(pipe);
+	return(std::pair<std::string,std::string>(NextcompilerOutput, file));
 }
 
 bool RuntimeLoader::build(){
@@ -96,7 +116,7 @@ bool RuntimeLoader::build(){
 		}
 	}
 
-	std::vector<std::string> funcNames;
+	std::vector<std::string> funcNames;//read the Loader files
 	for(int i=0;i<funcNamesPaths.size();i++){
 		std::string funcName = readFile(funcNamesPaths[i]);
 		std::vector<std::string> splitLoaders = splitString(funcName, "\n");
@@ -112,7 +132,7 @@ bool RuntimeLoader::build(){
 		}
 	}
 
-	std::string startingLevel;
+	std::string startingLevel;//read the init file
 	{
 		startingLevel = readFile(startingLevelPath);
 		startingLevel.erase(remove(startingLevel.begin(), startingLevel.end(), ' '), startingLevel.end());
@@ -146,6 +166,8 @@ bool RuntimeLoader::build(){
 
 	createFolder(buildDir);
 
+	std::vector<std::future<std::optional<std::pair<std::string,std::string>>>> compilationThreads;
+
 	for(int i=0;i<cppPaths.size();i++){//make this one parralel
 		std::string code = readFile(cppPaths[i]);
 		if(code == ""){
@@ -161,24 +183,18 @@ bool RuntimeLoader::build(){
 		}
 		
 		std::string command = compiler + " " +  defaultOptions + " " + cppPaths[i] + " " + compilerOptions + " -c -g -o " + buildDir + "/" + hash + ".o "  + " 2>&1";
-				
-		std::cout<<"Running Command: "<<command<<std::endl;
-		char buffer[128];
-		FILE* pipe = popen(command.c_str(), "r");
-		if(!pipe){
-			//error = true;
-			//generated = false;
-			continue;
+		
+		//std::thread commandThread = std::thread(runCommand, command);
+		compilationThreads.push_back(std::async(runCommand, command, hash));//use async to get a return value
+	}
+
+	for(int i=0;i<compilationThreads.size();i++){
+		std::optional<std::pair<std::string, std::string>> returnValOpt = compilationThreads[i].get();
+		if(returnValOpt){
+			std::pair<std::string, std::string> returnVal = returnValOpt.value();
+			errors.push_back(returnVal.first);
+			objPaths.push_back(buildDir + "/" + returnVal.second + ".o");
 		}
-		std::string NextcompilerOutput = "";
-		while(!feof(pipe)){
-			if(fgets(buffer, 128, pipe) != NULL){
-				NextcompilerOutput += buffer;
-			}
-		}
-		pclose(pipe);
-		errors.push_back(NextcompilerOutput);
-		objPaths.push_back(buildDir + "/" + hash + ".o");
 	}
 
 
