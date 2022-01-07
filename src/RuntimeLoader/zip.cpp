@@ -47,6 +47,11 @@ std::optional<std::pair<char*, int>> Zip::readFile(std::string filename){//in th
 	zip_fclose(file_program);
 	return(std::pair<char*, int>(contents, size));
 }
+#if defined(_WIN32) || defined(_WIN64)
+std::optional<FILE*> Zip::readFILE(std::string filename){
+	return(std::nullopt);//not supported on windows due to absence of fmemopen
+}
+#else
 std::optional<FILE*> Zip::readFILE(std::string filename){
 	std::optional<std::pair<char*, int>> file = readFile(filename);
 	if(!file){
@@ -55,6 +60,7 @@ std::optional<FILE*> Zip::readFILE(std::string filename){
 	FILE* FILEstream = fmemopen(file.value().first, file.value().second, "r");
 	return(FILEstream);
 }
+#endif
 
 bool Zip::writeFileToDisk(std::string sourceFilename, std::string destination){
 	std::optional<std::pair<char*, int>> file = readFile(sourceFilename);
