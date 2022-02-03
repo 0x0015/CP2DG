@@ -7,7 +7,9 @@
 #include "audio.h"
 #include "JsonLoader.hpp"
 #include "GameObjects/ParticlesObject.hpp"
+#ifndef DISABLE_RUNTIMELOADER
 #include "RuntimeLoader/RuntimeLoader.hpp"
+#endif
 
 void CP2DG::Initialize(){
 	if(debug)
@@ -74,9 +76,11 @@ void CP2DG::Initialize(){
 	Assets = new AssetLoader();
 	Assets->mainWindow = this;
 	Input = new InputHandler();
-
+	
+#ifndef DISABLE_RUNTIMELOADER
 	DlLoader = std::make_shared<RuntimeLoader>(this);
 	DlLoader->build();
+#endif
 
 	std::shared_ptr<RenderObject> Level = std::make_shared<RenderObject>();
 	Level->renderSize = std::pair<float, float>(renderSize.first, renderSize.second);
