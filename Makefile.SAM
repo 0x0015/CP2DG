@@ -38,9 +38,8 @@ OBJS	= src/main_c.cpp.o \
 	  src/SimpleCppTextFileHandler/getExecutablePath.cpp.o \
 	  src/NFont/SDL_FontCache.c.o \
 	  src/NFont/NFont.cpp.o \
-	  src/flextGL.c.o 
-RUNTIMELOADER_OBJS = src/RuntimeLoader/RuntimeLoader.cpp.o \
-	  src/RuntimeLoader/zip.cpp.o 
+	  src/flextGL.c.o \
+	  {RUNTIMELOADER_OBJS}
 
 OUT	= {OUT}
 SHARED  = {SHARED}
@@ -50,22 +49,22 @@ BUILD_CXX_FLAGS	 = {BUILD_CXX_FLAGS}
 BULID_CC_FLAGS   = {BUILD_CC_FLAGS}
 LINK_OPTS	 = {LINK_OPTS}
 
-all: $(OBJS) $(RUNTIMELOADER_OBJS)
+all: $(OBJS)
 	mkdir -p bin
-	$(CXX) -g $(OBJS) $(RUNTIMELOADER_OBJS) -o $(OUT) $(LINK_OPTS)
+	$(CXX) -g $(OBJS) -o $(OUT) $(LINK_OPTS)
 	#$(AR) rvs $(LIB) $(OBJS)
-	$(CXX) -shared -g -o $(SHARED) $(OBJS) $(RUNTIMELOADER_OBJS) $(BUILD_CXX_FLAGS) $(LINK_OPTS)
+	$(CXX) -shared -g -o $(SHARED) $(OBJS) $(BUILD_CXX_FLAGS) $(LINK_OPTS)
 	cp -a Content/. bin/Content/
 	cp -a include/. bin/include/
 
 
 %.cpp.o: %.cpp
-	$(CXX) $< $(BUILD_CXX_FLAGS) $(LINK_OPTS) -g -c -o $@
+	$(CXX) $< $(BUILD_CXX_FLAGS) {RELEASE_FLAGS} -c -o $@
 
 %.c.o: %.c
-	$(CXX) $< $(BUILD_CXX_FLAGS) $(LINK_OPTS) -g -c -o $@
+	$(CXX) $< $(BUILD_CXX_FLAGS) {RELEASE_FLAGS} -c -o $@
 
 clean:
-	rm -f $(OBJS) $(OUT) $(RUNTIMELOADER_OBJS) $(SHARED)
+	rm -f $(OBJS) $(OUT) $(SHARED)
 	rm -rf -f DllTemp
 	rm -rf -f bin
